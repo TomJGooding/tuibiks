@@ -370,9 +370,9 @@ void render_cube(const Cube *cube) {
     printf("███");
     printf(
         "\x1b[48;2;%d;%d;%dm",
-        colors[cube->right[3]].r,
-        colors[cube->right[3]].g,
-        colors[cube->right[3]].b
+        colors[cube->right[2]].r,
+        colors[cube->right[2]].g,
+        colors[cube->right[2]].b
     );
     printf(
         "\x1b[38;2;%d;%d;%dm",

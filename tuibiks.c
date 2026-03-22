@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 typedef enum {
     WHITE,
@@ -18,6 +19,104 @@ typedef struct {
     Color back[9];
     Color down[9];
 } Cube;
+
+void face_rotate_cw(Color face[9]) {
+    /*
+     * F6 F3 F0 <- F0 F1 F2
+     * F7 F4 F1 <- F3 F4 F5
+     * F8 F5 F2 <- F6 F7 F8
+     */
+
+    Color temp[9];
+    memcpy(temp, face, sizeof(temp));
+    for (int row = 0; row < 3; row++) {
+        for (int col = 0; col < 3; col++) {
+            int new_row = col;
+            int new_col = 2 - row;
+            face[(new_row * 3) + new_col] = temp[(row * 3) + col];
+        }
+    }
+}
+
+void face_rotate_ccw(Color face[9]) {
+    /*
+     * F2 F5 F8 <- F0 F1 F2
+     * F1 F4 F7 <- F3 F4 F5
+     * F0 F3 F6 <- F6 F7 F8
+     */
+
+    Color temp[9];
+    memcpy(temp, face, sizeof(temp));
+    for (int row = 0; row < 3; row++) {
+        for (int col = 0; col < 3; col++) {
+            int new_row = 2 - col;
+            int new_col = row;
+            face[(new_row * 3) + new_col] = temp[(row * 3) + col];
+        }
+    }
+}
+
+void cube_rotate_x(Cube *cube) {
+    // Rotate the entire cube on R
+
+    // U <- F <- D
+    Color temp[9];
+    memcpy(temp, cube->up, sizeof(temp));
+    memcpy(cube->up, cube->front, sizeof(cube->up));
+    memcpy(cube->front, cube->down, sizeof(cube->front));
+
+    // D <- B rotated 180
+    for (int i = 0; i < 9; i++) {
+        cube->down[8 - i] = cube->back[i];
+     }
+
+    // B <- U rotated 180
+    for (int i = 0; i < 9; i++) {
+        cube->back[8 - i] = temp[i];
+    }
+
+    face_rotate_cw(cube->right);
+
+    face_rotate_ccw(cube->left);
+}
+
+void cube_rotate_y(Cube *cube) {
+    // Rotate the entire cube on U
+
+    // B <- L <- F <- R <- B
+    Color temp[9];
+    memcpy(temp, cube->back, sizeof(temp));
+    memcpy(cube->back, cube->left, sizeof(cube->back));
+    memcpy(cube->left, cube->front, sizeof(cube->left));
+    memcpy(cube->front, cube->right, sizeof(cube->front));
+    memcpy(cube->right, temp, sizeof(cube->right));
+
+    face_rotate_cw(cube->up);
+
+    face_rotate_ccw(cube->down);
+}
+
+void cube_rotate_z(Cube *cube) {
+    // Rotate the entire cube on F
+
+    face_rotate_cw(cube->front);
+
+    face_rotate_ccw(cube->back);
+
+    // L <- D <- R <- U <- L
+    // BUT ALL ROTATED CLOCKWISE!
+    Color temp[9];
+    memcpy(temp, cube->left, sizeof(temp));
+    memcpy(cube->left, cube->down, sizeof(cube->left));
+    memcpy(cube->down, cube->right, sizeof(cube->down));
+    memcpy(cube->right, cube->up, sizeof(cube->right));
+    memcpy(cube->up, temp, sizeof(cube->up));
+
+    face_rotate_cw(cube->left);
+    face_rotate_cw(cube->down);
+    face_rotate_cw(cube->right);
+    face_rotate_cw(cube->up);
+}
 
 typedef struct {
     uint8_t r;
@@ -680,6 +779,24 @@ int main() {
         .down = {BLUE, RED, GREEN, RED, YELLOW, BLUE, GREEN, BLUE, RED}
     };
 
+    render_cube(&test_cube);
+    printf("\n");
+    render_cube_net(&test_cube);
+
+    printf("\nROTATE X\n\n");
+    cube_rotate_x(&test_cube);
+    render_cube(&test_cube);
+    printf("\n");
+    render_cube_net(&test_cube);
+
+    printf("\nROTATE Y\n\n");
+    cube_rotate_y(&test_cube);
+    render_cube(&test_cube);
+    printf("\n");
+    render_cube_net(&test_cube);
+
+    printf("\nROTATE Z\n\n");
+    cube_rotate_z(&test_cube);
     render_cube(&test_cube);
     printf("\n");
     render_cube_net(&test_cube);

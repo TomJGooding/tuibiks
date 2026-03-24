@@ -20,6 +20,8 @@ typedef struct {
     Color down[9];
 } Cube;
 
+#define FACE_IDX(row, col) (3 * (row) + (col))
+
 void face_rotate_cw(Color face[9]) {
     /*
      * F6 F3 F0 <- F0 F1 F2
@@ -33,7 +35,7 @@ void face_rotate_cw(Color face[9]) {
         for (int col = 0; col < 3; col++) {
             int new_row = col;
             int new_col = 2 - row;
-            face[(new_row * 3) + new_col] = temp[(row * 3) + col];
+            face[FACE_IDX(new_row, new_col)] = temp[FACE_IDX(row, col)];
         }
     }
 }
@@ -51,7 +53,7 @@ void face_rotate_ccw(Color face[9]) {
         for (int col = 0; col < 3; col++) {
             int new_row = 2 - col;
             int new_col = row;
-            face[(new_row * 3) + new_col] = temp[(row * 3) + col];
+            face[FACE_IDX(new_row, new_col)] = temp[FACE_IDX(row, col)];
         }
     }
 }
@@ -151,9 +153,9 @@ void render_cube_net(const Cube *cube) {
         for (int col = 0; col < 3; col++) {
             printf(
                 "\x1b[38;2;%d;%d;%dm",
-                colors[cube->up[(3 * row) + col]].r,
-                colors[cube->up[(3 * row) + col]].g,
-                colors[cube->up[(3 * row) + col]].b
+                colors[cube->up[FACE_IDX(row, col)]].r,
+                colors[cube->up[FACE_IDX(row, col)]].g,
+                colors[cube->up[FACE_IDX(row, col)]].b
             );
             printf("U ");
         }
@@ -164,36 +166,36 @@ void render_cube_net(const Cube *cube) {
         for (int col = 0; col < 3; col++) {
             printf(
                 "\x1b[38;2;%d;%d;%dm",
-                colors[cube->left[(3 * row) + col]].r,
-                colors[cube->left[(3 * row) + col]].g,
-                colors[cube->left[(3 * row) + col]].b
+                colors[cube->left[FACE_IDX(row, col)]].r,
+                colors[cube->left[FACE_IDX(row, col)]].g,
+                colors[cube->left[FACE_IDX(row, col)]].b
             );
             printf("L ");
         }
         for (int col = 0; col < 3; col++) {
             printf(
                 "\x1b[38;2;%d;%d;%dm",
-                colors[cube->front[(3 * row) + col]].r,
-                colors[cube->front[(3 * row) + col]].g,
-                colors[cube->front[(3 * row) + col]].b
+                colors[cube->front[FACE_IDX(row, col)]].r,
+                colors[cube->front[FACE_IDX(row, col)]].g,
+                colors[cube->front[FACE_IDX(row, col)]].b
             );
             printf("F ");
         }
         for (int col = 0; col < 3; col++) {
             printf(
                 "\x1b[38;2;%d;%d;%dm",
-                colors[cube->right[(3 * row) + col]].r,
-                colors[cube->right[(3 * row) + col]].g,
-                colors[cube->right[(3 * row) + col]].b
+                colors[cube->right[FACE_IDX(row, col)]].r,
+                colors[cube->right[FACE_IDX(row, col)]].g,
+                colors[cube->right[FACE_IDX(row, col)]].b
             );
             printf("R ");
         }
         for (int col = 0; col < 3; col++) {
             printf(
                 "\x1b[38;2;%d;%d;%dm",
-                colors[cube->back[(3 * row) + col]].r,
-                colors[cube->back[(3 * row) + col]].g,
-                colors[cube->back[(3 * row) + col]].b
+                colors[cube->back[FACE_IDX(row, col)]].r,
+                colors[cube->back[FACE_IDX(row, col)]].g,
+                colors[cube->back[FACE_IDX(row, col)]].b
             );
             printf("B ");
         }
@@ -205,9 +207,9 @@ void render_cube_net(const Cube *cube) {
         for (int col = 0; col < 3; col++) {
             printf(
                 "\x1b[38;2;%d;%d;%dm",
-                colors[cube->down[(3 * row) + col]].r,
-                colors[cube->down[(3 * row) + col]].g,
-                colors[cube->down[(3 * row) + col]].b
+                colors[cube->down[FACE_IDX(row, col)]].r,
+                colors[cube->down[FACE_IDX(row, col)]].g,
+                colors[cube->down[FACE_IDX(row, col)]].b
             );
             printf("D ");
         }

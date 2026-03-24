@@ -61,6 +61,10 @@ void face_rotate_ccw(Color face[9]) {
 void cube_rotate_x(Cube *cube) {
     // Rotate the entire cube on R
 
+    face_rotate_cw(cube->right);
+
+    face_rotate_ccw(cube->left);
+
     // U <- F <- D
     Color temp[9];
     memcpy(temp, cube->up, sizeof(temp));
@@ -76,14 +80,14 @@ void cube_rotate_x(Cube *cube) {
     for (int i = 0; i < 9; i++) {
         cube->back[8 - i] = temp[i];
     }
-
-    face_rotate_cw(cube->right);
-
-    face_rotate_ccw(cube->left);
 }
 
 void cube_rotate_y(Cube *cube) {
     // Rotate the entire cube on U
+
+    face_rotate_cw(cube->up);
+
+    face_rotate_ccw(cube->down);
 
     // B <- L <- F <- R <- B
     Color temp[9];
@@ -92,10 +96,6 @@ void cube_rotate_y(Cube *cube) {
     memcpy(cube->left, cube->front, sizeof(cube->left));
     memcpy(cube->front, cube->right, sizeof(cube->front));
     memcpy(cube->right, temp, sizeof(cube->right));
-
-    face_rotate_cw(cube->up);
-
-    face_rotate_ccw(cube->down);
 }
 
 void cube_rotate_z(Cube *cube) {
@@ -118,6 +118,66 @@ void cube_rotate_z(Cube *cube) {
     face_rotate_cw(cube->down);
     face_rotate_cw(cube->right);
     face_rotate_cw(cube->up);
+}
+
+void cube_rotate_r(Cube *cube) {
+    // Rotate right clockwise
+
+    face_rotate_cw(cube->right);
+
+    // U <- F <- D (right column)
+    Color temp[3];
+    for (int row = 0; row < 3; row++) {
+        temp[row] = cube->up[FACE_IDX(row, 2)];
+        cube->up[FACE_IDX(row, 2)] = cube->front[FACE_IDX(row, 2)];
+        cube->front[FACE_IDX(row, 2)] = cube->down[FACE_IDX(row, 2)];
+    }
+
+    // D <- B rotated 180
+    // D8 <- B0
+    // D5 <- B3
+    // D2 <- B6
+    for (int row = 0; row < 3; row++) {
+        cube->down[FACE_IDX(2 - row, 2)] = cube->back[FACE_IDX(row, 0)];
+    }
+
+    // B <- U rotated 180
+    // B6 <- U2
+    // B3 <- U5
+    // B0 <- U8
+    for (int row = 0; row < 3; row++) {
+        cube->back[FACE_IDX(2 - row, 0)] = temp[row];
+    }
+}
+
+void cube_rotate_u(Cube *cube) {
+    // Rotate up clockwise
+
+    face_rotate_cw(cube->up);
+
+    // B <- L <- F <- R <- B (top row)
+    for (int col = 0; col < 3; col++) {
+        Color temp = cube->back[FACE_IDX(0, col)];
+        cube->back[FACE_IDX(0, col)] = cube->left[FACE_IDX(0, col)];
+        cube->left[FACE_IDX(0, col)] = cube->front[FACE_IDX(0, col)];
+        cube->front[FACE_IDX(0, col)] = cube->right[FACE_IDX(0, col)];
+        cube->right[FACE_IDX(0, col)] = temp;
+    }
+}
+
+void cube_rotate_d(Cube *cube) {
+    // Rotate down clockwise
+
+    face_rotate_cw(cube->down);
+
+    // L <- B <- R <- F <- L (bottom row)
+    for (int col = 0; col < 3; col++) {
+        Color temp = cube->left[FACE_IDX(2, col)];
+        cube->left[FACE_IDX(2, col)] = cube->back[FACE_IDX(2, col)];
+        cube->back[FACE_IDX(2, col)] = cube->right[FACE_IDX(2, col)];
+        cube->right[FACE_IDX(2, col)] = cube->front[FACE_IDX(2, col)];
+        cube->front[FACE_IDX(2, col)] = temp;
+    }
 }
 
 typedef struct {
@@ -772,33 +832,54 @@ void render_cube(const Cube *cube) {
 }
 
 int main() {
+    // Cube test_cube = {
+    //     .up = {RED, GREEN, BLUE, BLUE, YELLOW, GREEN, GREEN, BLUE, RED},
+    //     .left = {RED, BLUE, GREEN, BLUE, YELLOW, RED, GREEN, RED, BLUE},
+    //     .front = {GREEN, BLUE, RED, RED, YELLOW, BLUE, BLUE, RED, GREEN},
+    //     .right = {RED, GREEN, BLUE, BLUE, YELLOW, GREEN, GREEN, BLUE, RED},
+    //     .back = {BLUE, GREEN, RED, GREEN, YELLOW, BLUE, RED, BLUE, GREEN},
+    //     .down = {BLUE, RED, GREEN, RED, YELLOW, BLUE, GREEN, BLUE, RED}
+    // };
+
     Cube test_cube = {
         .up = {RED, GREEN, BLUE, BLUE, YELLOW, GREEN, GREEN, BLUE, RED},
-        .left = {RED, BLUE, GREEN, BLUE, YELLOW, RED, GREEN, RED, BLUE},
-        .front = {GREEN, BLUE, RED, RED, YELLOW, BLUE, BLUE, RED, GREEN},
-        .right = {RED, GREEN, BLUE, BLUE, YELLOW, GREEN, GREEN, BLUE, RED},
-        .back = {BLUE, GREEN, RED, GREEN, YELLOW, BLUE, RED, BLUE, GREEN},
-        .down = {BLUE, RED, GREEN, RED, YELLOW, BLUE, GREEN, BLUE, RED}
+        .left = {RED, BLUE, GREEN, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE},
+        .front = {GREEN, BLUE, RED, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE},
+        .right = {RED, GREEN, BLUE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE},
+        .back = {BLUE, GREEN, RED, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE},
+        .down = {WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE}
     };
 
     render_cube(&test_cube);
     printf("\n");
     render_cube_net(&test_cube);
 
-    printf("\nROTATE X\n\n");
-    cube_rotate_x(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE Y\n\n");
-    cube_rotate_y(&test_cube);
+    printf("\nROTATE U\n\n");
+    cube_rotate_u(&test_cube);
     render_cube(&test_cube);
     printf("\n");
     render_cube_net(&test_cube);
 
     printf("\nROTATE Z\n\n");
     cube_rotate_z(&test_cube);
+    render_cube(&test_cube);
+    printf("\n");
+    render_cube_net(&test_cube);
+
+    printf("\nROTATE R\n\n");
+    cube_rotate_r(&test_cube);
+    render_cube(&test_cube);
+    printf("\n");
+    render_cube_net(&test_cube);
+
+    printf("\nROTATE Z\n\n");
+    cube_rotate_z(&test_cube);
+    render_cube(&test_cube);
+    printf("\n");
+    render_cube_net(&test_cube);
+
+    printf("\nROTATE D\n\n");
+    cube_rotate_d(&test_cube);
     render_cube(&test_cube);
     printf("\n");
     render_cube_net(&test_cube);

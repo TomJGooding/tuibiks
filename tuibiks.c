@@ -22,12 +22,17 @@ typedef struct {
 
 #define FACE_IDX(row, col) (3 * (row) + (col))
 
+
+////////////////////////////////////////
+// Face Rotations
+////////////////////////////////////////
+
 void face_rotate_cw(Color face[9]) {
-    /*
-     * F6 F3 F0 <- F0 F1 F2
-     * F7 F4 F1 <- F3 F4 F5
-     * F8 F5 F2 <- F6 F7 F8
-     */
+    // Rotate face clockwise
+    //
+    // F6 F3 F0 <- F0 F1 F2
+    // F7 F4 F1 <- F3 F4 F5
+    // F8 F5 F2 <- F6 F7 F8
 
     Color temp[9];
     memcpy(temp, face, sizeof(temp));
@@ -41,11 +46,11 @@ void face_rotate_cw(Color face[9]) {
 }
 
 void face_rotate_ccw(Color face[9]) {
-    /*
-     * F2 F5 F8 <- F0 F1 F2
-     * F1 F4 F7 <- F3 F4 F5
-     * F0 F3 F6 <- F6 F7 F8
-     */
+    // Rotate face counterclockwise
+    //
+    // F2 F5 F8 <- F0 F1 F2
+    // F1 F4 F7 <- F3 F4 F5
+    // F0 F3 F6 <- F6 F7 F8
 
     Color temp[9];
     memcpy(temp, face, sizeof(temp));
@@ -55,6 +60,181 @@ void face_rotate_ccw(Color face[9]) {
             int new_col = row;
             face[FACE_IDX(new_row, new_col)] = temp[FACE_IDX(row, col)];
         }
+    }
+}
+
+
+////////////////////////////////////////
+// Cube Face Rotations
+////////////////////////////////////////
+
+void cube_rotate_u(Cube *cube) {
+    // Rotate up clockwise
+
+    face_rotate_cw(cube->up);
+
+    // B <- L <- F <- R <- B (top row)
+    for (int col = 0; col < 3; col++) {
+        Color temp = cube->back[FACE_IDX(0, col)];
+        cube->back[FACE_IDX(0, col)] = cube->left[FACE_IDX(0, col)];
+        cube->left[FACE_IDX(0, col)] = cube->front[FACE_IDX(0, col)];
+        cube->front[FACE_IDX(0, col)] = cube->right[FACE_IDX(0, col)];
+        cube->right[FACE_IDX(0, col)] = temp;
+    }
+}
+
+void cube_rotate_d(Cube *cube) {
+    // Rotate down clockwise
+
+    face_rotate_cw(cube->down);
+
+    // L <- B <- R <- F <- L (bottom row)
+    for (int col = 0; col < 3; col++) {
+        Color temp = cube->left[FACE_IDX(2, col)];
+        cube->left[FACE_IDX(2, col)] = cube->back[FACE_IDX(2, col)];
+        cube->back[FACE_IDX(2, col)] = cube->right[FACE_IDX(2, col)];
+        cube->right[FACE_IDX(2, col)] = cube->front[FACE_IDX(2, col)];
+        cube->front[FACE_IDX(2, col)] = temp;
+    }
+}
+
+void cube_rotate_l(Cube *cube) {
+    // Rotate left clockwise
+
+    face_rotate_cw(cube->left);
+
+    // D <- F <- U (left column)
+    Color temp[3];
+    for (int row = 0; row < 3; row++) {
+        temp[row] = cube->down[FACE_IDX(row, 0)];
+        cube->down[FACE_IDX(row, 0)] = cube->front[FACE_IDX(row, 0)];
+        cube->front[FACE_IDX(row, 0)] = cube->up[FACE_IDX(row, 0)];
+    }
+
+    // U <- B rotated 180
+    // U6 <- B2
+    // U3 <- B5
+    // U0 <- B8
+    for (int row = 0; row < 3; row++) {
+        cube->up[FACE_IDX(2 - row, 0)] = cube->back[FACE_IDX(row, 2)];
+    }
+
+    // B <- D rotated 180
+    // B8 <- D0
+    // B5 <- D3
+    // B2 <- D6
+    for (int row = 0; row < 3; row++) {
+        cube->back[FACE_IDX(2 - row, 2)] = temp[row];
+    }
+}
+
+void cube_rotate_r(Cube *cube) {
+    // Rotate right clockwise
+
+    face_rotate_cw(cube->right);
+
+    // U <- F <- D (right column)
+    Color temp[3];
+    for (int row = 0; row < 3; row++) {
+        temp[row] = cube->up[FACE_IDX(row, 2)];
+        cube->up[FACE_IDX(row, 2)] = cube->front[FACE_IDX(row, 2)];
+        cube->front[FACE_IDX(row, 2)] = cube->down[FACE_IDX(row, 2)];
+    }
+
+    // D <- B rotated 180
+    // D8 <- B0
+    // D5 <- B3
+    // D2 <- B6
+    for (int row = 0; row < 3; row++) {
+        cube->down[FACE_IDX(2 - row, 2)] = cube->back[FACE_IDX(row, 0)];
+    }
+
+    // B <- U rotated 180
+    // B6 <- U2
+    // B3 <- U5
+    // B0 <- U8
+    for (int row = 0; row < 3; row++) {
+        cube->back[FACE_IDX(2 - row, 0)] = temp[row];
+    }
+}
+
+void cube_rotate_f(Cube *cube) {
+    // Rotate front clockwise
+
+    face_rotate_cw(cube->front);
+
+    // D2 <- R0
+    // D1 <- R3
+    // D0 <- R6
+    Color temp[3];
+    memcpy(temp, cube->down, sizeof(temp));
+    for (int row = 0; row < 3; row++) {
+        int new_col = 2 - row;
+        cube->down[FACE_IDX(0, new_col)] = cube->right[FACE_IDX(row, 0)];
+    }
+
+    // R0 <- U6
+    // R3 <- U7
+    // R6 <- U8
+    for (int col = 0; col < 3; col++) {
+        int new_row = col;
+        cube->right[FACE_IDX(new_row, 0)] = cube->up[FACE_IDX(2, col)];
+    }
+
+    // U8 <- L2
+    // U7 <- L5
+    // U6 <- L8
+    for (int row = 0; row < 3; row++) {
+        int new_col = 2 - row;
+        cube->up[FACE_IDX(2, new_col)] = cube->left[FACE_IDX(row, 2)];
+    }
+
+    // L2 <- D0
+    // L5 <- D1
+    // L8 <- D2
+    for (int col = 0; col < 3; col++) {
+        int new_row = col;
+        cube->left[FACE_IDX(new_row, 2)] = temp[col];
+    }
+}
+
+void cube_rotate_b(Cube *cube) {
+    // Rotate back clockwise
+
+    face_rotate_cw(cube->back);
+
+    // U0 <- R2
+    // U1 <- R5
+    // U2 <- R8
+    Color temp[3];
+    memcpy(temp, cube->up, sizeof(temp));
+    for (int row = 0; row < 3; row++) {
+        int new_col = row;
+        cube->up[FACE_IDX(0, new_col)] = cube->right[FACE_IDX(row, 2)];
+    }
+
+    // R8 <- D6
+    // R5 <- D7
+    // R2 <- D8
+    for (int col = 0; col < 3; col++) {
+        int new_row = 2 - col;
+        cube->right[FACE_IDX(new_row, 2)] = cube->down[FACE_IDX(2, col)];
+    }
+
+    // D8 <- L0
+    // D7 <- L3
+    // D6 <- L6
+    for (int row = 0; row < 3; row++) {
+        int new_col = row;
+        cube->down[FACE_IDX(2, new_col)] = cube->left[FACE_IDX(row, 0)];
+    }
+
+    // L6 <- U0
+    // L3 <- U1
+    // L0 <- U2
+    for (int col = 0; col < 3; col++) {
+        int new_row = 2 - col;
+        cube->left[FACE_IDX(new_row, 0)] = temp[col];
     }
 }
 
@@ -126,180 +306,6 @@ void cube_rotate_z(Cube *cube) {
 }
 
 
-////////////////////////////////////////
-// Face Rotations
-////////////////////////////////////////
-
-void cube_rotate_f(Cube *cube) {
-    // Rotate front clockwise
-
-    face_rotate_cw(cube->front);
-
-    // D2 <- R0
-    // D1 <- R3
-    // D0 <- R6
-    Color temp[3];
-    memcpy(temp, cube->down, sizeof(temp));
-    for (int row = 0; row < 3; row++) {
-        int new_col = 2 - row;
-        cube->down[FACE_IDX(0, new_col)] = cube->right[FACE_IDX(row, 0)];
-    }
-
-    // R0 <- U6
-    // R3 <- U7
-    // R6 <- U8
-    for (int col = 0; col < 3; col++) {
-        int new_row = col;
-        cube->right[FACE_IDX(new_row, 0)] = cube->up[FACE_IDX(2, col)];
-    }
-
-    // U8 <- L2
-    // U7 <- L5
-    // U6 <- L8
-    for (int row = 0; row < 3; row++) {
-        int new_col = 2 - row;
-        cube->up[FACE_IDX(2, new_col)] = cube->left[FACE_IDX(row, 2)];
-    }
-
-    // L2 <- D0
-    // L5 <- D1
-    // L8 <- D2
-    for (int col = 0; col < 3; col++) {
-        int new_row = col;
-        cube->left[FACE_IDX(new_row, 2)] = temp[col];
-    }
-}
-
-void cube_rotate_r(Cube *cube) {
-    // Rotate right clockwise
-
-    face_rotate_cw(cube->right);
-
-    // U <- F <- D (right column)
-    Color temp[3];
-    for (int row = 0; row < 3; row++) {
-        temp[row] = cube->up[FACE_IDX(row, 2)];
-        cube->up[FACE_IDX(row, 2)] = cube->front[FACE_IDX(row, 2)];
-        cube->front[FACE_IDX(row, 2)] = cube->down[FACE_IDX(row, 2)];
-    }
-
-    // D <- B rotated 180
-    // D8 <- B0
-    // D5 <- B3
-    // D2 <- B6
-    for (int row = 0; row < 3; row++) {
-        cube->down[FACE_IDX(2 - row, 2)] = cube->back[FACE_IDX(row, 0)];
-    }
-
-    // B <- U rotated 180
-    // B6 <- U2
-    // B3 <- U5
-    // B0 <- U8
-    for (int row = 0; row < 3; row++) {
-        cube->back[FACE_IDX(2 - row, 0)] = temp[row];
-    }
-}
-
-void cube_rotate_u(Cube *cube) {
-    // Rotate up clockwise
-
-    face_rotate_cw(cube->up);
-
-    // B <- L <- F <- R <- B (top row)
-    for (int col = 0; col < 3; col++) {
-        Color temp = cube->back[FACE_IDX(0, col)];
-        cube->back[FACE_IDX(0, col)] = cube->left[FACE_IDX(0, col)];
-        cube->left[FACE_IDX(0, col)] = cube->front[FACE_IDX(0, col)];
-        cube->front[FACE_IDX(0, col)] = cube->right[FACE_IDX(0, col)];
-        cube->right[FACE_IDX(0, col)] = temp;
-    }
-}
-
-void cube_rotate_l(Cube *cube) {
-    // Rotate left clockwise
-
-    face_rotate_cw(cube->left);
-
-    // D <- F <- U (left column)
-    Color temp[3];
-    for (int row = 0; row < 3; row++) {
-        temp[row] = cube->down[FACE_IDX(row, 0)];
-        cube->down[FACE_IDX(row, 0)] = cube->front[FACE_IDX(row, 0)];
-        cube->front[FACE_IDX(row, 0)] = cube->up[FACE_IDX(row, 0)];
-    }
-
-    // U <- B rotated 180
-    // U6 <- B2
-    // U3 <- B5
-    // U0 <- B8
-    for (int row = 0; row < 3; row++) {
-        cube->up[FACE_IDX(2 - row, 0)] = cube->back[FACE_IDX(row, 2)];
-    }
-
-    // B <- D rotated 180
-    // B8 <- D0
-    // B5 <- D3
-    // B2 <- D6
-    for (int row = 0; row < 3; row++) {
-        cube->back[FACE_IDX(2 - row, 2)] = temp[row];
-    }
-}
-
-void cube_rotate_b(Cube *cube) {
-    // Rotate back clockwise
-
-    face_rotate_cw(cube->back);
-
-    // U0 <- R2
-    // U1 <- R5
-    // U2 <- R8
-    Color temp[3];
-    memcpy(temp, cube->up, sizeof(temp));
-    for (int row = 0; row < 3; row++) {
-        int new_col = row;
-        cube->up[FACE_IDX(0, new_col)] = cube->right[FACE_IDX(row, 2)];
-    }
-
-    // R8 <- D6
-    // R5 <- D7
-    // R2 <- D8
-    for (int col = 0; col < 3; col++) {
-        int new_row = 2 - col;
-        cube->right[FACE_IDX(new_row, 2)] = cube->down[FACE_IDX(2, col)];
-    }
-
-    // D8 <- L0
-    // D7 <- L3
-    // D6 <- L6
-    for (int row = 0; row < 3; row++) {
-        int new_col = row;
-        cube->down[FACE_IDX(2, new_col)] = cube->left[FACE_IDX(row, 0)];
-    }
-
-    // L6 <- U0
-    // L3 <- U1
-    // L0 <- U2
-    for (int col = 0; col < 3; col++) {
-        int new_row = 2 - col;
-        cube->left[FACE_IDX(new_row, 0)] = temp[col];
-    }
-}
-
-void cube_rotate_d(Cube *cube) {
-    // Rotate down clockwise
-
-    face_rotate_cw(cube->down);
-
-    // L <- B <- R <- F <- L (bottom row)
-    for (int col = 0; col < 3; col++) {
-        Color temp = cube->left[FACE_IDX(2, col)];
-        cube->left[FACE_IDX(2, col)] = cube->back[FACE_IDX(2, col)];
-        cube->back[FACE_IDX(2, col)] = cube->right[FACE_IDX(2, col)];
-        cube->right[FACE_IDX(2, col)] = cube->front[FACE_IDX(2, col)];
-        cube->front[FACE_IDX(2, col)] = temp;
-    }
-}
-
 typedef struct {
     uint8_t r;
     uint8_t g;
@@ -316,17 +322,17 @@ RGBColor colors[] = {
 };
 
 void render_cube_net(const Cube *cube) {
-    /*
-     *       U U U
-     *       U U U
-     *       U U U
-     * L L L F F F R R R B B B
-     * L L L F F F R R R B B B
-     * L L L F F F R R R B B B
-     *       D D D
-     *       D D D
-     *       D D D
-     */
+    // Render flattened cube for debugging
+    //
+    //       U U U
+    //       U U U
+    //       U U U
+    // L L L F F F R R R B B B
+    // L L L F F F R R R B B B
+    // L L L F F F R R R B B B
+    //       D D D
+    //       D D D
+    //       D D D
 
     for (int row = 0; row < 3; row++) {
         printf("      ");
@@ -398,20 +404,20 @@ void render_cube_net(const Cube *cube) {
 }
 
 void render_cube(const Cube *cube) {
-    /*
-     *       🭈🭆🭂🭍🭑🬽
-     *    🭈🭆🭂🭍🭑🬽🭈🭆🭂🭍🭑🬽
-     * 🭈🭆🭂🭍🭑🬽🭈🭆🭂🭍🭑🬽🭈🭆🭂🭍🭑🬽
-     * 🭍🭑🬽🭈🭆🭂🭍🭑🬽🭈🭆🭂🭍🭑🬽🭈🭆🭂
-     * ███🭍🭑🬽🭈🭆🭂🭍🭑🬽🭈🭆🭂███
-     * 🭍🭑🬽███🭍🭑🬽🭈🭆🭂███🭈🭆🭂
-     * ███🭍🭑🬽██████🭈🭆🭂███
-     * 🭍🭑🬽███🭍🭑🬽🭈🭆🭂███🭈🭆🭂
-     * ███🭍🭑🬽██████🭈🭆🭂███
-     * 🭣🭧🭓███🭍🭑🬽🭈🭆🭂███🭞🭜🭘
-     *    🭣🭧🭓██████🭞🭜🭘
-     *       🭣🭧🭓🭞🭜🭘
-     */
+    // Render 3D cube
+    //
+    //       🭈🭆🭂🭍🭑🬽
+    //    🭈🭆🭂🭍🭑🬽🭈🭆🭂🭍🭑🬽
+    // 🭈🭆🭂🭍🭑🬽🭈🭆🭂🭍🭑🬽🭈🭆🭂🭍🭑🬽
+    // 🭍🭑🬽🭈🭆🭂🭍🭑🬽🭈🭆🭂🭍🭑🬽🭈🭆🭂
+    // ███🭍🭑🬽🭈🭆🭂🭍🭑🬽🭈🭆🭂███
+    // 🭍🭑🬽███🭍🭑🬽🭈🭆🭂███🭈🭆🭂
+    // ███🭍🭑🬽██████🭈🭆🭂███
+    // 🭍🭑🬽███🭍🭑🬽🭈🭆🭂███🭈🭆🭂
+    // ███🭍🭑🬽██████🭈🭆🭂███
+    // 🭣🭧🭓███🭍🭑🬽🭈🭆🭂███🭞🭜🭘
+    //    🭣🭧🭓██████🭞🭜🭘
+    //       🭣🭧🭓🭞🭜🭘
 
     printf("   ");
     printf("   ");

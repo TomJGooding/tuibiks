@@ -4,10 +4,10 @@
 
 typedef enum {
     WHITE,
+    ORANGE,
     GREEN,
     RED,
     BLUE,
-    ORANGE,
     YELLOW
 } Color;
 
@@ -19,6 +19,19 @@ typedef struct {
     Color back[9];
     Color down[9];
 } Cube;
+
+void cube_init(Cube *cube) {
+    // Initialize cube in solved state
+
+    for (int i = 0; i < 9; i++) {
+        cube->up[i] = WHITE;
+        cube->left[i] = ORANGE;
+        cube->front[i] = GREEN;
+        cube->right[i] = RED;
+        cube->back[i] = BLUE;
+        cube->down[i] = YELLOW;
+    }
+}
 
 #define FACE_IDX(row, col) (3 * (row) + (col))
 
@@ -306,6 +319,10 @@ void cube_rotate_z(Cube *cube) {
 }
 
 
+////////////////////////////////////////
+// Rendering
+////////////////////////////////////////
+
 typedef struct {
     uint8_t r;
     uint8_t g;
@@ -314,10 +331,10 @@ typedef struct {
 
 RGBColor colors[] = {
     {255, 255, 255},  // WHITE
+    {255, 88, 0},     // ORANGE
     {0, 155, 72},     // GREEN
     {183, 18, 52},    // RED
     {0, 70, 173},     // BLUE
-    {255, 88, 0},     // ORANGE
     {255, 213, 0},    // YELLOW
 };
 
@@ -958,91 +975,8 @@ void render_cube(const Cube *cube) {
 }
 
 int main() {
-    // Cube test_cube = {
-    //     .up = {RED, GREEN, BLUE, BLUE, YELLOW, GREEN, GREEN, BLUE, RED},
-    //     .left = {RED, BLUE, GREEN, BLUE, YELLOW, RED, GREEN, RED, BLUE},
-    //     .front = {GREEN, BLUE, RED, RED, YELLOW, BLUE, BLUE, RED, GREEN},
-    //     .right = {RED, GREEN, BLUE, BLUE, YELLOW, GREEN, GREEN, BLUE, RED},
-    //     .back = {BLUE, GREEN, RED, GREEN, YELLOW, BLUE, RED, BLUE, GREEN},
-    //     .down = {BLUE, RED, GREEN, RED, YELLOW, BLUE, GREEN, BLUE, RED}
-    // };
+    Cube cube;
+    cube_init(&cube);
 
-    Cube test_cube = {
-        .up = {RED, GREEN, BLUE, BLUE, YELLOW, GREEN, GREEN, BLUE, RED},
-        .left = {RED, BLUE, GREEN, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE},
-        .front = {GREEN, BLUE, RED, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE},
-        .right = {RED, GREEN, BLUE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE},
-        .back = {BLUE, GREEN, RED, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE},
-        .down = {WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE}
-    };
-
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE U\n\n");
-    cube_rotate_u(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE Z\n\n");
-    cube_rotate_z(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE R\n\n");
-    cube_rotate_r(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE Z\n\n");
-    cube_rotate_z(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE D\n\n");
-    cube_rotate_d(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE X\n\n");
-    cube_rotate_x(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE F\n\n");
-    cube_rotate_f(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE Y\n\n");
-    cube_rotate_y(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE L\n\n");
-    cube_rotate_l(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE Y\n\n");
-    cube_rotate_y(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
-
-    printf("\nROTATE B\n\n");
-    cube_rotate_b(&test_cube);
-    render_cube(&test_cube);
-    printf("\n");
-    render_cube_net(&test_cube);
+    render_cube(&cube);
 }

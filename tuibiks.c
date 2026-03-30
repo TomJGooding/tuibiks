@@ -253,6 +253,182 @@ void cube_rotate_b(Cube *cube) {
 
 
 ////////////////////////////////////////
+// Cube Face Rotations Inverted
+////////////////////////////////////////
+
+void cube_rotate_ui(Cube *cube) {
+    // Rotate up counterclockwise
+
+    face_rotate_ccw(cube->up);
+
+    // B <- R <- F <- L <- B (top row)
+    for (int col = 0; col < 3; col++) {
+        Color temp = cube->back[FACE_IDX(0, col)];
+        cube->back[FACE_IDX(0, col)] = cube->right[FACE_IDX(0, col)];
+        cube->right[FACE_IDX(0, col)] = cube->front[FACE_IDX(0, col)];
+        cube->front[FACE_IDX(0, col)] = cube->left[FACE_IDX(0, col)];
+        cube->left[FACE_IDX(0, col)] = temp;
+    }
+}
+
+void cube_rotate_di(Cube *cube) {
+    // Rotate down counterclockwise
+
+    face_rotate_ccw(cube->down);
+
+    // L <- F <- R <- B <- L (bottom row)
+    for (int col = 0; col < 3; col++) {
+        Color temp = cube->left[FACE_IDX(2, col)];
+        cube->left[FACE_IDX(2, col)] = cube->front[FACE_IDX(2, col)];
+        cube->front[FACE_IDX(2, col)] = cube->right[FACE_IDX(2, col)];
+        cube->right[FACE_IDX(2, col)] = cube->back[FACE_IDX(2, col)];
+        cube->back[FACE_IDX(2, col)] = temp;
+    }
+}
+
+void cube_rotate_li(Cube *cube) {
+    // Rotate left counterclockwise
+
+    face_rotate_ccw(cube->left);
+
+    // U <- F <- D (left column)
+    Color temp[3];
+    for (int row = 0; row < 3; row++) {
+        temp[row] = cube->up[FACE_IDX(row, 0)];
+        cube->up[FACE_IDX(row, 0)] = cube->front[FACE_IDX(row, 0)];
+        cube->front[FACE_IDX(row, 0)] = cube->down[FACE_IDX(row, 0)];
+    }
+
+    // D <- B rotated 180
+    // D6 <- B2
+    // D3 <- B5
+    // D0 <- B8
+    for (int row = 0; row < 3; row++) {
+        cube->down[FACE_IDX(2 - row, 0)] = cube->back[FACE_IDX(row, 2)];
+    }
+
+    // B <- U rotated 180
+    // B8 <- U0
+    // B5 <- U3
+    // B2 <- U6
+    for (int row = 0; row < 3; row++) {
+        cube->back[FACE_IDX(2 - row, 2)] = temp[row];
+    }
+}
+
+void cube_rotate_ri(Cube *cube) {
+    // Rotate right counterclockwise
+
+    face_rotate_ccw(cube->right);
+
+    // D <- F <- U (right column)
+    Color temp[3];
+    for (int row = 0; row < 3; row++) {
+        temp[row] = cube->down[FACE_IDX(row, 2)];
+        cube->down[FACE_IDX(row, 2)] = cube->front[FACE_IDX(row, 2)];
+        cube->front[FACE_IDX(row, 2)] = cube->up[FACE_IDX(row, 2)];
+    }
+
+    // U <- B rotated 180
+    // U8 <- B0
+    // U5 <- B3
+    // U2 <- B6
+    for (int row = 0; row < 3; row++) {
+        cube->up[FACE_IDX(2 - row, 2)] = cube->back[FACE_IDX(row, 0)];
+    }
+
+    // B <- D rotated 180
+    // B6 <- D2
+    // B3 <- D5
+    // B0 <- D8
+    for (int row = 0; row < 3; row++) {
+        cube->back[FACE_IDX(2 - row, 0)] = temp[row];
+    }
+}
+
+void cube_rotate_fi(Cube *cube) {
+    // Rotate front counterclockwise
+
+    face_rotate_ccw(cube->front);
+
+    // D0 <- L2
+    // D1 <- L5
+    // D2 <- L8
+    Color temp[3];
+    memcpy(temp, cube->down, sizeof(temp));
+    for (int row = 0; row < 3; row++) {
+        int new_col = row;
+        cube->down[FACE_IDX(0, new_col)] = cube->left[FACE_IDX(row, 2)];
+    }
+
+    // L8 <- U6
+    // L5 <- U7
+    // L2 <- U8
+    for (int col = 0; col < 3; col++) {
+        int new_row = 2 - col;
+        cube->left[FACE_IDX(new_row, 2)] = cube->up[FACE_IDX(2, col)];
+    }
+
+    // U6 <- R0
+    // U7 <- R3
+    // U8 <- R6
+    for (int row = 0; row < 3; row++) {
+        int new_col = row;
+        cube->up[FACE_IDX(2, new_col)] = cube->right[FACE_IDX(row, 0)];
+    }
+
+    // R6 <- D0
+    // R3 <- D1
+    // R0 <- D2
+    for (int col = 0; col < 3; col++) {
+        int new_row = 2 - col;
+        cube->right[FACE_IDX(new_row, 0)] = temp[col];
+    }
+}
+
+void cube_rotate_bi(Cube *cube) {
+    // Rotate back counterclockwise
+
+    face_rotate_ccw(cube->back);
+
+    // U2 <- L0
+    // U1 <- L3
+    // U0 <- L6
+    Color temp[3];
+    memcpy(temp, cube->up, sizeof(temp));
+    for (int row = 0; row < 3; row++) {
+        // int new_row = col;
+        int new_col = 2 - row;
+        cube->up[FACE_IDX(0, new_col)] = cube->left[FACE_IDX(row, 0)];
+    }
+
+    // L0 <- D6
+    // L3 <- D7
+    // L6 <- D8
+    for (int col = 0; col < 3; col++) {
+        int new_row = col;
+        cube->left[FACE_IDX(new_row, 0)] = cube->down[FACE_IDX(2, col)];
+    }
+
+    // D8 <- R2
+    // D7 <- L5
+    // D6 <- L8
+    for (int row = 0; row < 3; row++) {
+        int new_col = 2 - row;
+        cube->down[FACE_IDX(2, new_col)] = cube->right[FACE_IDX(row, 2)];
+    }
+
+    // R2 <- U0
+    // R5 <- U1
+    // R8 <- U2
+    for (int col = 0; col < 3; col++) {
+        int new_row = col;
+        cube->right[FACE_IDX(new_row, 2)] = temp[col];
+    }
+}
+
+
+////////////////////////////////////////
 // Whole Cube Rotations
 ////////////////////////////////////////
 
@@ -978,5 +1154,69 @@ int main() {
     Cube cube;
     cube_init(&cube);
 
+    // Scramble
+    // L2 B F U2 F' L2 B' D F' U2 R D2 L F2 L' D' B2 F U2
+    cube_rotate_l(&cube);
+    cube_rotate_l(&cube);
+    cube_rotate_b(&cube);
+    cube_rotate_f(&cube);
+    cube_rotate_u(&cube);
+    cube_rotate_u(&cube);
+    cube_rotate_fi(&cube);
+    cube_rotate_l(&cube);
+    cube_rotate_l(&cube);
+    cube_rotate_bi(&cube);
+    cube_rotate_d(&cube);
+    cube_rotate_fi(&cube);
+    cube_rotate_u(&cube);
+    cube_rotate_u(&cube);
+    cube_rotate_r(&cube);
+    cube_rotate_d(&cube);
+    cube_rotate_d(&cube);
+    cube_rotate_l(&cube);
+    cube_rotate_f(&cube);
+    cube_rotate_f(&cube);
+    cube_rotate_li(&cube);
+    cube_rotate_di(&cube);
+    cube_rotate_b(&cube);
+    cube_rotate_b(&cube);
+    cube_rotate_f(&cube);
+    cube_rotate_u(&cube);
+    cube_rotate_u(&cube);
+
     render_cube(&cube);
+    render_cube_net(&cube);
+    printf("\n");
+
+    // Solve
+    cube_rotate_ui(&cube);
+    cube_rotate_ui(&cube);
+    cube_rotate_fi(&cube);
+    cube_rotate_bi(&cube);
+    cube_rotate_bi(&cube);
+    cube_rotate_d(&cube);
+    cube_rotate_l(&cube);
+    cube_rotate_fi(&cube);
+    cube_rotate_fi(&cube);
+    cube_rotate_li(&cube);
+    cube_rotate_di(&cube);
+    cube_rotate_di(&cube);
+    cube_rotate_ri(&cube);
+    cube_rotate_ui(&cube);
+    cube_rotate_ui(&cube);
+    cube_rotate_f(&cube);
+    cube_rotate_di(&cube);
+    cube_rotate_b(&cube);
+    cube_rotate_li(&cube);
+    cube_rotate_li(&cube);
+    cube_rotate_f(&cube);
+    cube_rotate_ui(&cube);
+    cube_rotate_ui(&cube);
+    cube_rotate_fi(&cube);
+    cube_rotate_bi(&cube);
+    cube_rotate_li(&cube);
+    cube_rotate_li(&cube);
+
+    render_cube(&cube);
+    render_cube_net(&cube);
 }

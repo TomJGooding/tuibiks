@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <termios.h>
+#include <unistd.h>
 
 typedef enum {
     WHITE,
@@ -492,6 +495,29 @@ void cube_rotate_z(Cube *cube) {
     face_rotate_cw(cube->down);
     face_rotate_cw(cube->right);
     face_rotate_cw(cube->up);
+}
+
+
+////////////////////////////////////////
+// Terminal
+////////////////////////////////////////
+
+struct termios orig_termios;
+
+void term_restore(void) {
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+}
+
+void term_init(void) {
+    tcgetattr(STDIN_FILENO, &orig_termios);
+
+    atexit(term_restore);
+
+    struct termios new = orig_termios;
+    new.c_lflag &= ~(ECHO | ICANON);
+    new.c_cc[VMIN] = 1;
+    new.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &new);
 }
 
 
@@ -1151,72 +1177,76 @@ void render_cube(const Cube *cube) {
 }
 
 int main() {
+    term_init();
+
     Cube cube;
     cube_init(&cube);
 
-    // Scramble
-    // L2 B F U2 F' L2 B' D F' U2 R D2 L F2 L' D' B2 F U2
-    cube_rotate_l(&cube);
-    cube_rotate_l(&cube);
-    cube_rotate_b(&cube);
-    cube_rotate_f(&cube);
-    cube_rotate_u(&cube);
-    cube_rotate_u(&cube);
-    cube_rotate_fi(&cube);
-    cube_rotate_l(&cube);
-    cube_rotate_l(&cube);
-    cube_rotate_bi(&cube);
-    cube_rotate_d(&cube);
-    cube_rotate_fi(&cube);
-    cube_rotate_u(&cube);
-    cube_rotate_u(&cube);
-    cube_rotate_r(&cube);
-    cube_rotate_d(&cube);
-    cube_rotate_d(&cube);
-    cube_rotate_l(&cube);
-    cube_rotate_f(&cube);
-    cube_rotate_f(&cube);
-    cube_rotate_li(&cube);
-    cube_rotate_di(&cube);
-    cube_rotate_b(&cube);
-    cube_rotate_b(&cube);
-    cube_rotate_f(&cube);
-    cube_rotate_u(&cube);
-    cube_rotate_u(&cube);
-
     render_cube(&cube);
-    render_cube_net(&cube);
-    printf("\n");
 
-    // Solve
-    cube_rotate_ui(&cube);
-    cube_rotate_ui(&cube);
-    cube_rotate_fi(&cube);
-    cube_rotate_bi(&cube);
-    cube_rotate_bi(&cube);
-    cube_rotate_d(&cube);
-    cube_rotate_l(&cube);
-    cube_rotate_fi(&cube);
-    cube_rotate_fi(&cube);
-    cube_rotate_li(&cube);
-    cube_rotate_di(&cube);
-    cube_rotate_di(&cube);
-    cube_rotate_ri(&cube);
-    cube_rotate_ui(&cube);
-    cube_rotate_ui(&cube);
-    cube_rotate_f(&cube);
-    cube_rotate_di(&cube);
-    cube_rotate_b(&cube);
-    cube_rotate_li(&cube);
-    cube_rotate_li(&cube);
-    cube_rotate_f(&cube);
-    cube_rotate_ui(&cube);
-    cube_rotate_ui(&cube);
-    cube_rotate_fi(&cube);
-    cube_rotate_bi(&cube);
-    cube_rotate_li(&cube);
-    cube_rotate_li(&cube);
+    char move;
+    while (1) {
+        if (read(STDIN_FILENO, &move, 1) != 1) {
+            exit(1);
+        }
 
-    render_cube(&cube);
-    render_cube_net(&cube);
+        switch (move) {
+            // Face rotations
+            case 'U':
+                cube_rotate_u(&cube);
+                break;
+            case 'u':
+                cube_rotate_ui(&cube);
+                break;
+            case 'D':
+                cube_rotate_d(&cube);
+                break;
+            case 'd':
+                cube_rotate_di(&cube);
+                break;
+            case 'L':
+                cube_rotate_l(&cube);
+                break;
+            case 'l':
+                cube_rotate_li(&cube);
+                break;
+            case 'R':
+                cube_rotate_r(&cube);
+                break;
+            case 'r':
+                cube_rotate_ri(&cube);
+                break;
+            case 'F':
+                cube_rotate_f(&cube);
+                break;
+            case 'f':
+                cube_rotate_fi(&cube);
+                break;
+            case 'B':
+                cube_rotate_b(&cube);
+                break;
+            case 'b':
+                cube_rotate_bi(&cube);
+                break;
+
+            // Whole cube rotations
+            // TODO: Add inverted whole cube rotations
+            case 'X':
+                cube_rotate_x(&cube);
+                break;
+            case 'Y':
+                cube_rotate_y(&cube);
+                break;
+            case 'Z':
+                cube_rotate_z(&cube);
+                break;
+
+            // Not a move
+            default:
+                continue;
+        }
+
+        printf("\x1b[12A");
+        render_cube(&cube);
+    }
 }

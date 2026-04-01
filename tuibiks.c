@@ -499,6 +499,73 @@ void cube_rotate_z(Cube *cube) {
 
 
 ////////////////////////////////////////
+// Whole Cube Rotations Inverted
+////////////////////////////////////////
+
+void cube_rotate_xi(Cube *cube) {
+    // Rotate the entire cube on L
+
+    face_rotate_cw(cube->left);
+
+    face_rotate_ccw(cube->right);
+
+    // D <- F <- U
+    Color temp[9];
+    memcpy(temp, cube->down, sizeof(temp));
+    memcpy(cube->down, cube->front, sizeof(cube->down));
+    memcpy(cube->front, cube->up, sizeof(cube->front));
+
+    // U <- B rotated 180
+    for (int i = 0; i < 9; i++) {
+        cube->up[8 - i] = cube->back[i];
+     }
+
+    // B <- D rotated 180
+    for (int i = 0; i < 9; i++) {
+        cube->back[8 - i] = temp[i];
+    }
+}
+
+void cube_rotate_yi(Cube *cube) {
+    // Rotate the entire cube on D
+
+    face_rotate_cw(cube->down);
+
+    face_rotate_ccw(cube->up);
+
+    // B <- R <- F <- L <- B
+    Color temp[9];
+    memcpy(temp, cube->back, sizeof(temp));
+    memcpy(cube->back, cube->right, sizeof(cube->back));
+    memcpy(cube->right, cube->front, sizeof(cube->right));
+    memcpy(cube->front, cube->left, sizeof(cube->front));
+    memcpy(cube->left, temp, sizeof(cube->left));
+}
+
+void cube_rotate_zi(Cube *cube) {
+    // Rotate the entire cube on B
+
+    face_rotate_cw(cube->back);
+
+    face_rotate_ccw(cube->front);
+
+    // L <- U <- R <- D <- L
+    // BUT ALL ROTATED COUNTERCLOCKWISE!
+    Color temp[9];
+    memcpy(temp, cube->left, sizeof(temp));
+    memcpy(cube->left, cube->up, sizeof(cube->left));
+    memcpy(cube->up, cube->right, sizeof(cube->up));
+    memcpy(cube->right, cube->down, sizeof(cube->right));
+    memcpy(cube->down, temp, sizeof(cube->down));
+
+    face_rotate_ccw(cube->left);
+    face_rotate_ccw(cube->up);
+    face_rotate_ccw(cube->right);
+    face_rotate_ccw(cube->down);
+}
+
+
+////////////////////////////////////////
 // Terminal
 ////////////////////////////////////////
 
@@ -1230,15 +1297,23 @@ int main() {
                 break;
 
             // Whole cube rotations
-            // TODO: Add inverted whole cube rotations
             case 'X':
                 cube_rotate_x(&cube);
+                break;
+            case 'x':
+                cube_rotate_xi(&cube);
                 break;
             case 'Y':
                 cube_rotate_y(&cube);
                 break;
+            case 'y':
+                cube_rotate_yi(&cube);
+                break;
             case 'Z':
                 cube_rotate_z(&cube);
+                break;
+            case 'z':
+                cube_rotate_zi(&cube);
                 break;
 
             // Not a move

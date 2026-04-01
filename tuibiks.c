@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 typedef enum {
@@ -562,6 +563,88 @@ void cube_rotate_zi(Cube *cube) {
     face_rotate_ccw(cube->up);
     face_rotate_ccw(cube->right);
     face_rotate_ccw(cube->down);
+}
+
+
+////////////////////////////////////////
+// Moves (Face Rotations)
+////////////////////////////////////////
+
+typedef enum {
+    MOVE_U,
+    MOVE_D,
+    MOVE_L,
+    MOVE_R,
+    MOVE_F,
+    MOVE_B,
+
+    MOVE_UI,
+    MOVE_DI,
+    MOVE_LI,
+    MOVE_RI,
+    MOVE_FI,
+    MOVE_BI,
+} Move;
+
+void cube_rotate(Cube *cube, Move move) {
+    switch (move) {
+        case MOVE_U:
+            cube_rotate_u(cube);
+            break;
+        case MOVE_D:
+            cube_rotate_d(cube);
+            break;
+        case MOVE_L:
+            cube_rotate_l(cube);
+            break;
+        case MOVE_R:
+            cube_rotate_r(cube);
+            break;
+        case MOVE_F:
+            cube_rotate_f(cube);
+            break;
+        case MOVE_B:
+            cube_rotate_b(cube);
+            break;
+
+        case MOVE_UI:
+            cube_rotate_ui(cube);
+            break;
+        case MOVE_DI:
+            cube_rotate_di(cube);
+            break;
+        case MOVE_LI:
+            cube_rotate_li(cube);
+            break;
+        case MOVE_RI:
+            cube_rotate_ri(cube);
+            break;
+        case MOVE_FI:
+            cube_rotate_fi(cube);
+            break;
+        case MOVE_BI:
+            cube_rotate_bi(cube);
+            break;
+    }
+}
+
+
+////////////////////////////////////////
+// Cube Scramble
+////////////////////////////////////////
+
+Move random_move(void) {
+    return (Move)(rand() % 12);
+}
+
+void cube_scramble(Cube *cube) {
+    // TODO: Improve scramble to avoid redundant moves, etc.
+
+    int moves = 25;
+
+    while (moves--) {
+        cube_rotate(cube, random_move());
+    }
 }
 
 
@@ -1248,6 +1331,9 @@ int main() {
 
     Cube cube;
     cube_init(&cube);
+
+    srand(time(NULL));
+    cube_scramble(&cube);
 
     render_cube(&cube);
 

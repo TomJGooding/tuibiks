@@ -1344,6 +1344,11 @@ int main() {
         }
 
         switch (move) {
+            // Quit
+            case 'Q':
+            case 'q':
+                exit(0);
+
             // Face rotations
             case 'U':
                 cube_rotate_u(&cube);

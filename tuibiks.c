@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,6 +6,8 @@
 #include <termios.h>
 #include <time.h>
 #include <unistd.h>
+
+#define TUIBIKS_VERSION "0.0.1"
 
 typedef enum {
     WHITE,
@@ -1326,6 +1329,46 @@ void render_cube(const Cube *cube) {
     printf("\x1b[0m\n");
 }
 
+void render_help(void) {
+    RGBColor key_clr = colors[ORANGE];
+
+    printf("\x1b[1m");
+    printf("tuibiks v%s", TUIBIKS_VERSION);
+    printf("\x1b[0m");
+    printf(" (C) 2026 Tom Gooding\n");
+    printf("Released under the GNU GPLv3+\n");
+    printf("\n");
+
+    printf("\x1b[1m");
+    printf("\x1b[38;2;%d;%d;%dm", key_clr.r, key_clr.g, key_clr.b);
+    printf("F R U B L D: ");
+    printf("\x1b[0m");
+    printf("Rotate face\n");
+    printf("\x1b[1m");
+    printf("\x1b[38;2;%d;%d;%dm", key_clr.r, key_clr.g, key_clr.b);
+    printf("      X Y Z: ");
+    printf("\x1b[0m");
+    printf("Rotate whole cube\n");
+    printf("Lowercase for inverse rotations\n");
+    printf("\n");
+
+    printf("\x1b[1m");
+    printf("\x1b[38;2;%d;%d;%dm", key_clr.r, key_clr.g, key_clr.b);
+    printf("      h H ?: ");
+    printf("\x1b[0m");
+    printf("Show this help\n");
+    printf("\x1b[1m");
+    printf("\x1b[38;2;%d;%d;%dm", key_clr.r, key_clr.g, key_clr.b);
+    printf("        q Q: ");
+    printf("\x1b[0m");
+    printf("Quit\n");
+    printf("\n\n");
+
+    printf("\x1b[1m");
+    printf("Press any key to continue");
+    printf("\x1b[0m\n");
+}
+
 int main() {
     term_init();
 
@@ -1337,17 +1380,29 @@ int main() {
 
     render_cube(&cube);
 
+    bool show_help = false;
     char move;
     while (1) {
         if (read(STDIN_FILENO, &move, 1) != 1) {
             exit(1);
         }
 
-        switch (move) {
+        if (show_help) {
+            // Exit the help display after any key press
+            show_help = false;
+        } else {
+            switch (move) {
             // Quit
-            case 'Q':
             case 'q':
+            case 'Q':
                 exit(0);
+
+            // Show help
+            case 'h':
+            case 'H':
+            case '?':
+                show_help = true;
+                break;
 
             // Face rotations
             case 'U':
@@ -1410,9 +1465,15 @@ int main() {
             // Not a move
             default:
                 continue;
+            }
         }
 
         printf("\x1b[12A");
-        render_cube(&cube);
+        printf("\x1b[J");
+        if (show_help) {
+            render_help();
+        } else {
+            render_cube(&cube);
+        }
     }
 }
